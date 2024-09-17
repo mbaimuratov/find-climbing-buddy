@@ -1,8 +1,9 @@
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlmodel import col, delete, func, select
+
 
 from app import crud
 from app.api.deps import (
@@ -31,7 +32,7 @@ router = APIRouter()
 
 @router.get(
     "/",
-    dependencies=[Depends(get_current_active_superuser)],
+    # dependencies=[Depends(get_current_active_superuser)],
     response_model=UsersPublic,
 )
 def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
@@ -49,7 +50,9 @@ def read_users(session: SessionDep, skip: int = 0, limit: int = 100) -> Any:
 
 
 @router.post(
-    "/", dependencies=[Depends(get_current_active_superuser)], response_model=UserPublic
+    "/", 
+    dependencies=[Depends(get_current_active_superuser)], 
+    response_model=UserPublic,
 )
 def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     """
@@ -58,7 +61,7 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
     user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system.",
         )
 
@@ -149,7 +152,7 @@ def register_user(session: SessionDep, user_in: UserRegister) -> Any:
     user = crud.get_user_by_email(session=session, email=user_in.email)
     if user:
         raise HTTPException(
-            status_code=400,
+            status_code=status.HTTP_400_BAD_REQUEST,
             detail="The user with this email already exists in the system",
         )
     user_create = UserCreate.model_validate(user_in)
