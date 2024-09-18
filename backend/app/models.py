@@ -3,6 +3,10 @@ import uuid
 from pydantic import EmailStr
 from sqlmodel import Field, Relationship, SQLModel
 
+from datetime import datetime
+
+from typing import List
+
 
 # Shared properties
 class UserBase(SQLModel):
@@ -44,6 +48,8 @@ class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
     items: list["Item"] = Relationship(back_populates="owner", cascade_delete=True)
+    organized_events: list["Event"] = Relationship(back_populates="organizer", cascade_delete=True)
+    registrations: list["EventRegistration"] = Relationship(back_populates="user", cascade_delete=True)
 
 
 # Properties to return via API, id is always required
@@ -112,3 +118,62 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=40)
+
+
+# Shared properties for Event
+class EventBase(SQLModel):
+    title: str = Field(min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    date: datetime
+    location: str = Field(min_length=1, max_length=255)
+
+# Properties to receive on event creation
+class EventCreate(EventBase):
+    pass
+
+# Properties to receive on event update
+class EventUpdate(EventBase):
+    title: str | None = Field(default=None, min_length=1, max_length=255)
+    description: str | None = Field(default=None, max_length=255)
+    date: datetime | None = Field(default=None)
+    location: str | None = Field(default=None, min_length=1, max_length=255)
+
+# Database model for Event
+class Event(EventBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    organizer_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    organizer: User | None = Relationship(back_populates="organized_events")
+    registrations: list["EventRegistration"] = Relationship(back_populates="event", cascade_delete=True)
+
+# Properties to return via API for Event
+class EventPublic(EventBase):
+    id: uuid.UUID
+    organizer_id: uuid.UUID
+
+# Model to return a list of events with a count
+class EventsPublic(SQLModel):
+    data: List[EventPublic]
+    count: int
+
+# Shared properties for EventRegistration
+class EventRegistrationBase(SQLModel):
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    event_id: uuid.UUID = Field(foreign_key="event.id", nullable=False)
+    registration_date: datetime = Field(default_factory=datetime.now)
+
+# Properties to receive on event registration
+class EventRegistrationCreate(EventRegistrationBase):
+    pass
+
+# Database model for EventRegistration
+class EventRegistration(EventRegistrationBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user: User | None = Relationship(back_populates="registrations")
+    event: Event | None = Relationship(back_populates="registrations")
+
+# Properties to return via API for EventRegistration
+class EventRegistrationPublic(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    event_id: uuid.UUID
+    registration_date: datetime
