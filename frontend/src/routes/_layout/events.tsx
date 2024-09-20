@@ -73,7 +73,6 @@ function EventsTable() {
         <Table size={{ base: "sm", md: "md" }}>
           <Thead>
             <Tr>
-              <Th>ID</Th>
               <Th>Title</Th>
               <Th>Description</Th>
               <Th>Date</Th>
@@ -95,7 +94,6 @@ function EventsTable() {
               {Array.isArray(events) ? (
                 events.map((event) => (
                   <Tr key={event.id} opacity={isPlaceholderData ? 0.5 : 1}>
-                    <Td>{event.id}</Td>
                     <Td isTruncated maxWidth="150px">
                       {event.title}
                     </Td>
@@ -114,7 +112,7 @@ function EventsTable() {
                 ))
               ) : (
                 <Tr>
-                  <Td colSpan={5}>No events found</Td>
+                  <Td colSpan={4}>No events found</Td>
                 </Tr>
               )}
             </Tbody>
@@ -139,6 +137,7 @@ function EventsTable() {
     </>
   );
 }
+
 function Events() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const queryClient = useQueryClient();
