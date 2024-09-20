@@ -97,3 +97,27 @@ export type ValidationError = {
   msg: string
   type: string
 }
+
+export type EventCreate = {
+  title: string
+  description?: string | null
+  date: string
+  location: string
+  organizer_id: string
+}
+
+export type EventPublic = {
+  id: string
+  title: string
+  description?: string | null
+  date: string
+  location: string
+  organizer_id: string
+  owner_id: string
+}
+
+// Define the EventsPublic type
+export type EventsPublic = {
+  data: EventPublic[];
+  count: number;
+};

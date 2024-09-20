@@ -18,6 +18,9 @@ import type {
   ItemPublic,
   ItemsPublic,
   ItemUpdate,
+  EventCreate,
+  EventPublic,
+  EventsPublic,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -525,5 +528,139 @@ export class ItemsService {
         422: `Validation Error`,
       },
     })
+  }
+}
+
+export type TDataCreateEvent = {
+  requestBody: EventCreate
+}
+
+export type TDataReadEvent = {
+  id: string
+}
+
+export type TDataListEvents = {
+  skip: number;
+  limit: number;
+};
+
+// TDataUpdateEvent
+export type TDataUpdateEvent = {
+  id: string;
+  requestBody: EventCreate;
+};
+
+export type TDataDeleteEvent = {
+  id: string;
+};
+
+export class EventsService {
+  /**
+   * Create Event
+   * Create a new event.
+   * @returns EventPublic Successful Response
+   * @throws ApiError
+   */
+  public static createEvent(
+    data: TDataCreateEvent,
+  ): CancelablePromise<EventPublic> {
+    const { requestBody } = data
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/v1/events/",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Read Event
+   * Get event by ID.
+   * @returns EventPublic Successful Response
+   * @throws ApiError
+   */
+  public static readEvent(data: TDataReadEvent): CancelablePromise<EventPublic> {
+    const { id } = data
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/events/{id}",
+      path: {
+        id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * List Events
+   * Get a list of events with pagination.
+   * @returns EventsPublic Successful Response
+   * @throws ApiError
+   */
+  public static listEvents(
+    data: TDataListEvents
+  ): CancelablePromise<EventsPublic> {
+    const { skip, limit } = data;
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/events/",
+      query: {
+        skip,
+        limit,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    });
+  }
+
+  /**
+   * Update Event
+   * Update an event.
+   * @returns EventPublic Successful Response
+   * @throws ApiError
+   */
+  public static updateEvent(
+    data: TDataUpdateEvent,
+  ): CancelablePromise<EventPublic> {
+    const { id, requestBody } = data
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: "/api/v1/events/{id}",
+      path: {
+        id,
+      },
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
+    })
+  }
+
+  /**
+   * Delete Event
+   * Delete an event.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+ 
+  public static deleteEvent(data: TDataDeleteEvent): CancelablePromise<Message> {
+    const { id } = data;
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/events/{id}",
+      path: {
+        id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    });
   }
 }

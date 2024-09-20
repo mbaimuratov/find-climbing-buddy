@@ -9,10 +9,11 @@ import {
 import { BsThreeDotsVertical } from "react-icons/bs"
 import { FiEdit, FiTrash } from "react-icons/fi"
 
-import type { ItemPublic, UserPublic } from "../../client"
+import type { EventPublic, ItemPublic, UserPublic } from "../../client"
 import EditUser from "../Admin/EditUser"
 import EditItem from "../Items/EditItem"
 import Delete from "./DeleteAlert"
+import EditEvent from "../Events/EditEvent"
 
 interface ActionsMenuProps {
   type: string
@@ -51,6 +52,12 @@ const ActionsMenu = ({ type, value, disabled }: ActionsMenuProps) => {
         {type === "User" ? (
           <EditUser
             user={value as UserPublic}
+            isOpen={editUserModal.isOpen}
+            onClose={editUserModal.onClose}
+          />
+        ) : type === "Event" ? (
+          <EditEvent
+            event={value as EventPublic}
             isOpen={editUserModal.isOpen}
             onClose={editUserModal.onClose}
           />
