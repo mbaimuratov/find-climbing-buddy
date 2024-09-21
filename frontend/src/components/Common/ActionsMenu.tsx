@@ -17,7 +17,7 @@ import EditEvent from "../Events/EditEvent"
 
 interface ActionsMenuProps {
   type: string
-  value: ItemPublic | UserPublic
+  value: ItemPublic | UserPublic | EventPublic
   disabled?: boolean
 }
 

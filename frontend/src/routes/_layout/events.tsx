@@ -3,27 +3,19 @@ import {
   Container,
   Flex,
   Heading,
-  SkeletonText,
-  Table,
-  TableContainer,
-  Tbody,
-  Td,
-  Th,
-  Thead,
-  Tr,
   useDisclosure,
   useToast,
 } from "@chakra-ui/react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { z } from "zod";
 
-import { EventCreate, EventsService } from "../../client";
-import ActionsMenu from "../../components/Common/ActionsMenu";
+import { EventCreate, EventData, EventsService } from "../../client";
 import AddEvent from "../../components/Events/AddEvent";
 import RegistrationDialog from "../../components/Events/RegistrationDialog";
 import useAuth from "../../hooks/useAuth";
+import EventsTable from "../../components/Events/EventsTable";
 
 const eventsSearchSchema = z.object({
   page: z.number().catch(1),
@@ -34,119 +26,6 @@ export const Route = createFileRoute("/_layout/events")({
   validateSearch: (search) => eventsSearchSchema.parse(search),
 });
 
-const PER_PAGE = 5;
-
-function getEventsQueryOptions({ page }: { page: number }) {
-  return {
-    queryFn: () =>
-      EventsService.listEvents({ skip: (page - 1) * PER_PAGE, limit: PER_PAGE }),
-    queryKey: ["events", { page }],
-  };
-}
-
-type EventData = {
-  id: string;
-  title: string;
-  description?: string | null;
-  date: string;
-  owner_id: string;
-};
-
-function EventsTable({ onRegister, onWithdraw, registeredEvents }: { onRegister: (event: EventData) => void, onWithdraw: (event: EventData) => void, registeredEvents: Set<string> }) {
-  const queryClient = useQueryClient();
-  const [page, setPage] = useState(1);
-
-  const { data, isPending, isPlaceholderData } = useQuery({
-    ...getEventsQueryOptions({ page }),
-    placeholderData: (prevData) => prevData,
-  });
-
-  const events = data?.data || [];
-  const hasNextPage = !isPlaceholderData && Array.isArray(events) && events.length === PER_PAGE;
-  const hasPreviousPage = page > 1;
-
-  useEffect(() => {
-    if (hasNextPage) {
-      queryClient.prefetchQuery(getEventsQueryOptions({ page: page + 1 }));
-    }
-  }, [page, queryClient, hasNextPage]);
-
-  return (
-    <>
-      <TableContainer>
-        <Table size={{ base: "sm", md: "md" }}>
-          <Thead>
-            <Tr>
-              <Th>Title</Th>
-              <Th>Description</Th>
-              <Th>Date</Th>
-              <Th>Actions</Th>
-            </Tr>
-          </Thead>
-          {isPending ? (
-            <Tbody>
-              <Tr>
-                {new Array(4).fill(null).map((_, index) => (
-                  <Td key={index}>
-                    <SkeletonText noOfLines={1} paddingBlock="16px" />
-                  </Td>
-                ))}
-              </Tr>
-            </Tbody>
-          ) : (
-            <Tbody>
-              {Array.isArray(events) ? (
-                events.map((event: EventData) => (
-                  <Tr key={event.id} opacity={isPlaceholderData ? 0.5 : 1}>
-                    <Td isTruncated maxWidth="150px">
-                      {event.title}
-                    </Td>
-                    <Td
-                      color={!event.description ? "ui.dim" : "inherit"}
-                      isTruncated
-                      maxWidth="150px"
-                    >
-                      {event.description || "N/A"}
-                    </Td>
-                    <Td>{new Date(event.date).toLocaleDateString()}</Td>
-                    <Td>
-                      <ActionsMenu type={"Event"} value={event} />
-                      {registeredEvents.has(event.id) ? (
-                        <Button ml={2} onClick={() => onWithdraw(event)}>Withdraw Registration</Button>
-                      ) : (
-                        <Button ml={2} onClick={() => onRegister(event)}>Register</Button>
-                      )}
-                    </Td>
-                  </Tr>
-                ))
-              ) : (
-                <Tr>
-                  <Td colSpan={4}>No events found</Td>
-                </Tr>
-              )}
-            </Tbody>
-          )}
-        </Table>
-      </TableContainer>
-      <Flex
-        gap={4}
-        alignItems="center"
-        mt={4}
-        direction="row"
-        justifyContent="flex-end"
-      >
-        <Button onClick={() => setPage(page - 1)} isDisabled={!hasPreviousPage}>
-          Previous
-        </Button>
-        <span>Page {page}</span>
-        <Button isDisabled={!hasNextPage} onClick={() => setPage(page + 1)}>
-          Next
-        </Button>
-      </Flex>
-    </>
-  );
-}
-
 function Events() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const queryClient = useQueryClient();
@@ -155,6 +34,7 @@ function Events() {
   const { isOpen: isRegisterOpen, onOpen: onRegisterOpen, onClose: onRegisterClose } = useDisclosure();
   const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(new Set());
   const toast = useToast();
+
 
   useEffect(() => {
     if (user) {
@@ -171,8 +51,7 @@ function Events() {
   const handleAddEvent = (event: EventCreate) => {
     const newEvent: EventData = {
       ...event,
-      id: crypto.randomUUID(), // Generate a unique ID for the new event
-      owner_id: user?.id || "", // Assign the logged-in user's ID as the owner or an empty string if user is null or undefined
+      id: crypto.randomUUID(),
     };
     queryClient.setQueryData(['events'], (oldData: any) => {
       if (!oldData) return [newEvent];
@@ -243,6 +122,8 @@ function Events() {
       });
   };
 
+  
+
   return (
     <Container maxW="full">
       <Heading size="lg" textAlign={{ base: "center", md: "left" }} pt={12}>
@@ -255,7 +136,7 @@ function Events() {
         </Button>
       </Flex>
 
-      <EventsTable onRegister={handleRegisterClick} onWithdraw={handleWithdrawClick} registeredEvents={registeredEvents} />
+      <EventsTable onRegister={handleRegisterClick} onWithdraw={handleWithdrawClick} registeredEvents={registeredEvents} userId={user?.id || ""} />
 
       <AddEvent isOpen={isOpen} onClose={onClose} onAddEvent={handleAddEvent} />
 

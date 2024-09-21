@@ -113,7 +113,6 @@ export type EventPublic = {
   date: string
   location: string
   organizer_id: string
-  owner_id: string
 }
 
 export type EventsPublic = {
@@ -127,3 +126,11 @@ export type EventRegistrationPublic = {
   event_id: string
   registration_date: string
 }
+
+export type EventData = {
+  id: string;
+  title: string;
+  description?: string | null;
+  date: string;
+  organizer_id: string;
+};
