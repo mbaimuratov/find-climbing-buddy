@@ -25,6 +25,20 @@ def read_events(
     return EventsPublic(data=events, count=count)
 
 
+@router.get("/registered", response_model=EventsPublic)
+def get_user_registered_events(
+    *,
+    current_user: CurrentUser,
+) -> Any:
+    """
+    Get the list of events a user is registered for.
+    """
+    registrations = current_user.registrations
+    events = [registration.event for registration in registrations]
+    
+    return EventsPublic(data=events, count=len(events))
+
+
 @router.get("/{id}", response_model=EventPublic)
 def read_event(session: SessionDep, id: uuid.UUID) -> Any:
     """

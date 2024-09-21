@@ -21,6 +21,7 @@ import type {
   EventCreate,
   EventPublic,
   EventsPublic,
+  EventRegistrationPublic,
 } from "./models"
 
 export type TDataLoginAccessToken = {
@@ -554,6 +555,15 @@ export type TDataDeleteEvent = {
   id: string;
 };
 
+export type TDataRegisterForEvent = {
+  eventId: string;
+};
+
+export type TDataGetUserRegisteredEvents = {
+  userId: string;
+};
+
+
 export class EventsService {
   /**
    * Create Event
@@ -663,4 +673,65 @@ export class EventsService {
       },
     });
   }
+
+  /**
+   * Register For Event
+   * Register for an event.
+   * @returns Message Successful Response
+   * @throws ApiError
+   */
+  public static registerForEvent(
+    data: TDataRegisterForEvent
+    ): CancelablePromise<EventRegistrationPublic> {
+      const { eventId } = data;
+      return __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/events/{event_id}/register",
+        path: {
+          event_id: eventId,
+        },
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+    }
+
+    /**
+     * Unregister For Event
+     * Unregister from an event.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static unregisterForEvent(
+      data: TDataRegisterForEvent
+    ): CancelablePromise<Message> {
+      const { eventId } = data;
+      return __request(OpenAPI, {
+        method: "DELETE",
+        url: "/api/v1/events/{event_id}/unregister",
+        path: {
+          event_id: eventId,
+        },
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+    }
+
+    
+    /**
+     * Get User Registered Events
+     * Get the list of events a user is registered for.
+     * @returns EventsPublic Successful Response
+     * @throws ApiError
+     */
+    public static getUserRegisteredEvents(): CancelablePromise<EventsPublic> {
+      return __request(OpenAPI, {
+        method: "GET",
+        url: "/api/v1/events/registered",
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+    }
 }

@@ -116,8 +116,14 @@ export type EventPublic = {
   owner_id: string
 }
 
-// Define the EventsPublic type
 export type EventsPublic = {
   data: EventPublic[];
   count: number;
 };
+
+export type EventRegistrationPublic = {
+  id: string
+  user_id: string
+  event_id: string
+  registration_date: string
+}
